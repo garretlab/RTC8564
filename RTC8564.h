@@ -4,6 +4,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+// I2C Address
+#define RTCS8564_I2C_ADDRESS      0x51
+
 // Registers
 #define RTC8564_CONTROL1           0x00
 #define RTC8564_CONTROL2           0x01
@@ -32,15 +35,17 @@
 #define RTC8564_AF_BIT             0x08
 #define RTC8564_TITP_BIT           0x10
 
-// Alarm mode
+// Calendar registers
+#define RTCS8564_CAL_VL            0x80
+#define RTCS8564_CAL_CENTURY       0x80
+
+// Alarm register
 #define RTC8564_AE_NONE            0x00
 #define RTC8564_AE_MINUTE          0x01
 #define RTC8564_AE_HOUR            0x02
 #define RTC8564_AE_DAY             0x04
 #define RTC8564_AE_WEEKDAY         0x08
 #define RTC8564_AE_ALL             (RTC8564_AE_MINUTE | RTC8564_AE_HOUR | RTC8564_AE_DAY | RTC8564_AE_WEEKDAY)
-
-// Alarm registers
 #define RTC8564_AE_BIT             0x80
 
 // Timer control register
@@ -59,21 +64,21 @@
 
 // date and time
 struct dateTime {
-  uint8_t seconds;             // 0-59
-  uint8_t minutes;             // 0-59
-  uint8_t hours;               // 0-23
-  uint8_t days;                // 1-31
-  uint8_t months;              // 1-12
-  uint8_t years;               // 2000-2199
-  uint8_t weekdays;            // 0(Sun)-6(Sat)
+  uint8_t second;             // 0-59
+  uint8_t minute;             // 0-59
+  uint8_t hour;               // 0-23
+  uint8_t day;                // 1-31
+  uint8_t month;              // 1-12
+  uint8_t year;               // 00-199
+  uint8_t weekday;            // 0(Sun)-6(Sat)
 };
 
 // alarm
 struct alarmTime {
-  uint8_t minutes;             // 0-59
-  uint8_t hours;               // 0-23
-  uint8_t days;                // 1-31
-  uint8_t weekdays;            // 0(Sun)-6(Sat)
+  uint8_t minute;             // 0-59
+  uint8_t hour;               // 0-23
+  uint8_t day;                // 1-31
+  uint8_t weekday;            // 0(Sun)-6(Sat)
 };
 
 class RTC8564Class {
@@ -87,18 +92,19 @@ class RTC8564Class {
     int getDateTime(struct dateTime *dt);
     
     // Alarm handring functions
-    void setAlarmInterrupt(uint8_t enableFlags, struct alarmTime *dt, uint8_t interruptEnable);
+    void setAlarm(uint8_t enableFlags, struct alarmTime *at, uint8_t interruptEnable);
+    void getAlarm(uint8_t *enableFlags, struct alarmTime *at);
     int getAlarmFlag();
     void clearAlarmFlag();
     
     // Timer handring functions
-    void setTimerInterrupt(uint8_t enableFlag, uint8_t repeatMode, uint8_t clockMode, uint8_t counter, uint8_t interruptEnable);
+    void setTimer(uint8_t enableFlag, uint8_t repeatMode, uint8_t clockMode, uint8_t counter, uint8_t interruptEnable);
     int getTimerFlag();
     void clearTimerFlag();
     
     // Clkout handling functions
     void setClkoutFrequency(uint8_t enableFlag, uint8_t flag);
-    
+
   private:
     int slaveAddress;
 
